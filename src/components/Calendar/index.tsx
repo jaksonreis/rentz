@@ -1,20 +1,53 @@
 import React from 'react';
 import { Feather } from '@expo/vector-icons'
-
-import { Calendar as CustomCalendar, LocaleConfig } from 'react-native-calendars';
 import theme from '../../styles/theme';
 
-LocaleConfig.locales['pt-br'] = {
-    monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-    monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai',  'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-    dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado'],
-    dayNamesShort: ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'],
-    today: 'Hoje'
-}
+import { generateInterval } from './generateInterval';
+import { ptBR } from './localeConfig';
+
+import { 
+    Calendar as CustomCalendar,
+    LocaleConfig, 
+  } from 'react-native-calendars';
+
+LocaleConfig.locales['pt-br'] = ptBR;
 LocaleConfig.defaultLocale = 'pt-br';
 
-export function Calendar() {
+interface DateObject {
+    day: number;
+    dateString: string;
+    month: number;
+    timestamp: number;
+    year: number;
+}
+
+type DateCallbackHandler = (date: DateObject) => void;
+
+interface MarkedDateProps {
+    [date: string]: {
+        color: string;
+        textColor: string;
+        disabled?: boolean;
+        disableTouchEvents?: boolean;
+    }
+}
+
+interface DayProps {
+    dateString: string;
+    day: number;
+    month: number;
+    year: number;  
+    timestamp: number;
+}
+
+interface CalendarProps {
+    markedDates: MarkedDateProps;
+    onDayPress: DateCallbackHandler;
+  }
+
+function Calendar({markedDates, onDayPress}: CalendarProps ) {
   return (
+
     <CustomCalendar
         renderArrow={(direction) =>
             <Feather
@@ -43,6 +76,15 @@ export function Calendar() {
         }}
         firstDay={1}
         minDate={String(new Date())}
+        markingType="period"
+        markedDates={markedDates}
+        onDayPress={onDayPress}
     />
   );
+}
+export {
+    Calendar,
+    MarkedDateProps,
+    DayProps,
+    generateInterval
 }

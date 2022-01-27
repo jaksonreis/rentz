@@ -6,18 +6,30 @@ import { Home } from '../screens/Home';
 import { SchedulingDetails } from '../screens/SchedulingDetails';
 import { Scheduling } from '../screens/Scheduling';
 import { SchedulingComplete } from '../screens/SchedulingComplete';
+import { MyCars } from '../screens/MyCars';
+import { Splash } from '../screens/Splash';
 
 
 const { Navigator, Screen } = createStackNavigator();
 
 export function StackRoutes() {
     return (
-        <Navigator screenOptions={{
+        <Navigator 
+            screenOptions={{
             headerShown: false
-        }}>
+            }}
+            initialRouteName="Splash"
+        >
+            <Screen
+                name="Splash"
+                component={Splash}
+            />
             <Screen
                 name="Home"
                 component={Home}
+                options={{
+                    gestureEnabled: false
+                }}
             />
             <Screen
                 name="CarDetails"
@@ -34,6 +46,10 @@ export function StackRoutes() {
             <Screen
                 name="SchedulingComplete"
                 component={SchedulingComplete}
+            />
+            <Screen
+                name="MyCars"
+                component={MyCars}
             />
         </Navigator>
     )

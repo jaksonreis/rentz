@@ -1,6 +1,6 @@
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, StyleSheet, BackHandler } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 
 import Logo from '../../assets/logo.svg';
@@ -9,6 +9,7 @@ import { Car } from '../../components/Car';
 import api from '../../services/api';
 
 import { CarDTO } from '../../dtos/CarDTO';
+import { Ionicons } from '@expo/vector-icons';
 
 import {
   Container,
@@ -18,20 +19,69 @@ import {
   CarList
 
 } from './styles';
-import { Load } from '../../components/Load';
+import { LoadAnimation } from '../../components/LoadAnimation';
+import { useTheme } from 'styled-components';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  useAnimatedGestureHandler,
+  withSpring
+} from 'react-native-reanimated';
+
+import { PanGestureHandler, RectButton } from 'react-native-gesture-handler';
+
+const ButtonAnimated = Animated.createAnimatedComponent(RectButton);
 
 export function Home() {
   const [cars, setCars] = useState<CarDTO[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const positionY = useSharedValue(0);
+  const positionX = useSharedValue(0);
+
+  const MyCarsButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: positionX.value },
+        { translateY: positionY.value },
+      ]
+    }
+
+  });
+  const onGestureEvent = useAnimatedGestureHandler({
+    onStart(_, ctx: any) {
+      ctx.positionX = positionX.value;
+      ctx.positionY = positionY.value;
+    },
+    onActive(event, ctx: any) {
+      positionX.value = ctx.positionX + event.translationX;
+      positionY.value = ctx.positionY + event.translationY;
+
+    },
+    onEnd() {
+
+      positionX.value = withSpring(0)
+      positionY.value = withSpring(0)
+    }
+  });
+
   const navigation = useNavigation();
+  const theme = useTheme();
 
-  function handleCarDetails(item : CarDTO) {
-
-    //navigation.navigate({key: 'CarDetails'});
+  function handleCarDetails(item: CarDTO) {
     navigation.dispatch(
       CommonActions.navigate({
         name: 'CarDetails',
         params: item,
+      })
+    );
+
+  }
+
+  function handleOpenMyCars() {
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'MyCars',
       })
     );
 
@@ -55,6 +105,10 @@ export function Home() {
     fetchCars();
   }, [])
 
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', () => true)
+  })
+
   return (
     <Container>
       <StatusBar barStyle="light-content"
@@ -66,19 +120,57 @@ export function Home() {
             width={RFValue(108)}
             height={RFValue(12)}
           />
-          <TotalCars>
-            Total de 12 carros.
-          </TotalCars>
+          {
+            !loading &&
+            <TotalCars>
+              Total de {cars.length} carros.
+            </TotalCars>
+          }
         </HeaderContent>
       </Header>
-      { loading ? <Load/> :
-      <CarList
-        data={cars}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) =>
-          <Car data={item} onPress={() => handleCarDetails(item)} />}
-      /> }
+      {loading ? <LoadAnimation /> :
+        <CarList
+          data={cars}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) =>
+            <Car data={item} onPress={() => handleCarDetails(item)} />}
+        />}
+      <PanGestureHandler onGestureEvent={onGestureEvent}>
+        <Animated.View
+          style={[
+            MyCarsButtonStyle,
+            {
+              position: 'absolute',
+              bottom: 13,
+              right: 22,
+            }
+          ]}
+        >
+          <ButtonAnimated
+            style={[styles.button, { backgroundColor: theme.colors.main }]}
+            onPress={handleOpenMyCars}
+          >
+            <Ionicons
+              name="ios-car-sport"
+              size={32}
+              color={theme.colors.shape}
+            />
+
+          </ButtonAnimated>
+        </Animated.View>
+      </PanGestureHandler>
 
     </Container>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center'
+
+  }
+})

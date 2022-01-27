@@ -1,21 +1,22 @@
 import React from 'react';
+
+import Animated, {
+  Extrapolate,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue
+} from 'react-native-reanimated';
+
 import { BackButton } from '../../components/BackButton';
 import { ImageSlider } from '../../components/ImageSlider';
 import { Accessory } from '../../components/Accessory';
 import { Button } from '../../components/Button';
 
-import speedSvg from '../../assets/speed.svg';
-import accelerationSvg from '../../assets/acceleration.svg';
-import forceSvg from '../../assets/force.svg';
-import gasolineSvg from '../../assets/gasoline.svg';
-import exchangeSvg from '../../assets/exchange.svg';
-import peopleSvg from '../../assets/people.svg';
-
 import {
   Container,
   Header,
   CarImages,
-  Content,
   Details,
   Description,
   Brand,
@@ -29,6 +30,10 @@ import {
 } from './styles';
 import { useNavigation, CommonActions, useRoute } from '@react-navigation/native';
 import { CarDTO } from '../../dtos/CarDTO';
+import { getAccessoryIcon } from '../../utils/getAccessoryIcon';
+import { getStatusBarHeight } from 'react-native-iphone-x-helper';
+import { StatusBar, StyleSheet } from 'react-native';
+import { useTheme } from 'styled-components';
 
 /* interface Params {
   car: CarDTO;
@@ -38,35 +43,84 @@ export function CarDetails() {
   const navigation = useNavigation();
   const route = useRoute();
   const car = route.params as CarDTO;
-  console.log(car);
+  const theme = useTheme();
+
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(event => {
+    scrollY.value = event.contentOffset.y
+  })
+
+  const headerStyleAnimation = useAnimatedStyle(() => {
+    return {
+      height: interpolate(
+        scrollY.value,
+        [0, 200],
+        [200, 70],
+        Extrapolate.CLAMP
+      )
+    }
+  })
+
+  const sliderCarsStyleAnimation = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(
+        scrollY.value,
+        [0, 150],
+        [1, 0],
+        Extrapolate.CLAMP
+      )
+    }
+  })
 
   function handleConfirmRental() {
-
-
     navigation.dispatch(
       CommonActions.navigate({
         name: 'Scheduling',
+        params: {
+          car
+        },
       })
     );
 
   }
   function handleGoBack() {
-
-
     navigation.goBack();
-
   }
 
   return (
     <Container>
-      <Header>
-        <BackButton onPress={handleGoBack} />
+      <StatusBar
+        barStyle="dark-content"
+        translucent
+        backgroundColor="transparent"
+      />
+      <Animated.View
+        style={[
+          headerStyleAnimation, 
+          styles.header,
+          { backgroundColor: theme.colors.background_secondary}
+        ]}
+      >
+        <Header>
+          <BackButton onPress={handleGoBack} />
+        </Header>
 
-      </Header>
-      <CarImages>
-        <ImageSlider imagesUrl={car.photos} />
-      </CarImages>
-      <Content>
+        <Animated.View style={sliderCarsStyleAnimation}>
+          <CarImages>
+            <ImageSlider imagesUrl={car.photos} />
+          </CarImages>
+        </Animated.View>
+
+      </Animated.View>
+      <Animated.ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: getStatusBarHeight() + 160,
+        }}
+        showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+      >
         <Details>
           <Description>
             <Brand>{car.brand}</Brand>
@@ -84,18 +138,25 @@ export function CarDetails() {
               <Accessory
                 key={accessory.type}
                 name={accessory.name}
-                icon={speedSvg}
+                icon={getAccessoryIcon(accessory.type)}
               />
 
             ))
           }
 
         </Accessories>
-        <About>{car.about}</About>
-      </Content>
+        <About>{car.about}{car.about}{car.about}{car.about}{car.about}</About>
+      </Animated.ScrollView>
       <Footer>
         <Button title='Confirmar' onPress={handleConfirmRental} />
       </Footer>
-    </Container>
+    </Container >
   );
 }
+const styles = StyleSheet.create({
+  header: {
+    position: 'absolute',
+    overflow: 'hidden', 
+    zIndex: 1,
+  },
+})

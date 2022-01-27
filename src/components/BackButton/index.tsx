@@ -1,13 +1,13 @@
 import React from 'react';
 import {MaterialIcons} from '@expo/vector-icons';
 import { useTheme } from 'styled-components';
-import { TouchableOpacityProps } from 'react-native';
+import { BorderlessButtonProps } from 'react-native-gesture-handler';
 
 import {
   Container
 } from './styles';
 
-interface Props extends TouchableOpacityProps {
+interface Props extends BorderlessButtonProps {
   color?: string;
 }
 
