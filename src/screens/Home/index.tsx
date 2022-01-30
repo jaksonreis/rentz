@@ -1,6 +1,6 @@
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { StatusBar, StyleSheet, BackHandler } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 
 import Logo from '../../assets/logo.svg';
@@ -104,10 +104,6 @@ export function Home() {
 
     fetchCars();
   }, [])
-
-  useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', () => true)
-  })
 
   return (
     <Container>

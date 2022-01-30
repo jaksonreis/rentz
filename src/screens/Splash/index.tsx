@@ -55,7 +55,7 @@ export function Splash(){
   function startApp() {
     navigation.dispatch(
       CommonActions.navigate({
-        name: 'Home',
+        name: 'SignIn',
       })
     ); 
        
